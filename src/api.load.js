@@ -33,10 +33,33 @@ c3_chart_fn.load = function (args) {
     }
     // unload if needed
     if ('unload' in args) {
-        // TODO: do not unload if target will load (included in url/rows/columns)
-        $$.unload($$.mapToTargetIds((typeof args.unload === 'boolean' && args.unload) ? null : args.unload), function () {
-            $$.loadFromArgs(args);
-        });
+        //// TODO: do not unload if target will load (included in url/rows/columns)
+        //$$.unload($$.mapToTargetIds((typeof args.unload === 'boolean' && args.unload) ? null : args.unload), function () {
+        //    $$.loadFromArgs(args);
+        //});
+		
+		//I have introduced third option. if args.unload is false, it will unload only ids that are not in columns or rows. It does not work for url
+		var unload;
+		if (typeof args.unload === 'boolean') {
+			if (args.unload) {
+				unload = $$.mapToTargetIds(null);
+			} else {
+				unload = [];
+				var ids = $$.mapToIds($$.data.targets);
+				var newIds = args.columns ? (args.columns.map(function (a) { return a[0]; })) : args.rows[0];
+				for (var i = 0; i < ids.length; i++) {
+					if (newIds.indexOf(ids[i]) == -1) {
+						unload.push(ids[i]);
+					}
+				}
+			}
+		} else {
+			unload = $$.mapToTargetIds(args.unload);
+		}
+
+		$$.unload(unload, function () {
+			$$.loadFromArgs(args);
+		});		
     } else {
         $$.loadFromArgs(args);
     }
